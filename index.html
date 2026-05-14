@@ -245,7 +245,7 @@
         </div>
     </div>
 
-    <script>
+   <script>
         const ACCESS_CODE = "NOISE"; 
         
         const playlist = [
@@ -303,8 +303,7 @@
             {
                 title: "VOID",
                 file: "assets/VOID.mp3",
-                lyrics: ` 
-                    Captive of a world I don't like
+                lyrics: `Captive of a world I don't like
                     Children of a specie I would never choose
                     But if I put it that way, it's alright
                     There is nothing else to lose
@@ -354,7 +353,8 @@
                     To place my feet on the shore
                     And get drown in the gloomy scene`
             },
-            { title: "RED",
+            { 
+                title: "RED",
                 file: "assets/RED.mp3",
                 lyrics: `i borned with nothing to lose
                             and achived nothing but questions
@@ -409,7 +409,6 @@
         const titleDisplay = document.getElementById('current-title');
         const lyricsDisplay = document.getElementById('lyrics-text');
         
-        // Obtenemos el elemento de la imagen del cassette
         const cassetteBg = document.getElementById('cassette-bg');
 
         passInput.addEventListener('keypress', function (e) {
@@ -432,7 +431,7 @@
             lyricsDisplay.innerText = playlist[index].lyrics;
         }
 
-function togglePlay() {
+        function togglePlay() {
             if (audio.paused) {
                 audio.play();
                 playBtn.innerText = "PAUSE";
@@ -444,27 +443,30 @@ function togglePlay() {
             }
         }
 
-        function nextTrack(fromAutoPlay = false) {
-            // Evaluamos si el track actual estaba sonando antes de cambiar
+        // Se agrega el parámetro forcePlay (por defecto falso)
+        function nextTrack(forcePlay = false) {
+            // Guardamos el estado ANTES de cargar el nuevo MP3
             const wasPlaying = !audio.paused; 
             
+            // El módulo (%) asegura que después del último tema, volvamos al índice 0 (LOOP)
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             loadTrack(currentTrackIndex);
             
-            // Le damos play si estaba sonando o si viene del evento de finalización
-            if (wasPlaying || fromAutoPlay) {
+            // Evaluamos si el tema anterior estaba sonando o si forzamos el autoplay por código
+            if (wasPlaying || forcePlay) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
                 playBtn.innerText = "PAUSE";
             } else {
-                // Si estaba pausado, se mantiene pausado el siguiente track
                 cassetteBg.src = "assets/cassette_static.png";
                 playBtn.innerText = "PLAY";
             }
         }
 
         function prevTrack() {
-            const wasPlaying = !audio.paused;
+            const wasPlaying = !audio.paused; 
+            
+            // Cálculo para retroceder en loop
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             loadTrack(currentTrackIndex);
             
@@ -478,14 +480,9 @@ function togglePlay() {
             }
         }
 
-        // Evento que se dispara al terminar el track
+        // EVENTO CLAVE: Cuando un MP3 termina por sí solo, avanza de track y lo fuerza a reproducirse
         audio.onended = () => {
-            // Le pasamos "true" a nextTrack para forzar el Play automático
             nextTrack(true);
-        };
-
-        audio.onended = () => {
-            nextTrack();
         };
 
     </script>
