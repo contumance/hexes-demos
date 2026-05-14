@@ -432,37 +432,57 @@
             lyricsDisplay.innerText = playlist[index].lyrics;
         }
 
-        function togglePlay() {
+function togglePlay() {
             if (audio.paused) {
                 audio.play();
                 playBtn.innerText = "PAUSE";
-                // Cambia al GIF cuando reproduce
                 cassetteBg.src = "assets/cassette.gif"; 
             } else {
                 audio.pause();
                 playBtn.innerText = "PLAY";
-                // Vuelve a la imagen estática al pausar
                 cassetteBg.src = "assets/cassette_static.png"; 
             }
         }
 
-        function nextTrack() {
+        function nextTrack(fromAutoPlay = false) {
+            // Evaluamos si el track actual estaba sonando antes de cambiar
+            const wasPlaying = !audio.paused; 
+            
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             loadTrack(currentTrackIndex);
-            if (!audio.paused) {
+            
+            // Le damos play si estaba sonando o si viene del evento de finalización
+            if (wasPlaying || fromAutoPlay) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
+                playBtn.innerText = "PAUSE";
+            } else {
+                // Si estaba pausado, se mantiene pausado el siguiente track
+                cassetteBg.src = "assets/cassette_static.png";
+                playBtn.innerText = "PLAY";
             }
         }
 
         function prevTrack() {
+            const wasPlaying = !audio.paused;
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             loadTrack(currentTrackIndex);
-            if (!audio.paused) {
+            
+            if (wasPlaying) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
+                playBtn.innerText = "PAUSE";
+            } else {
+                cassetteBg.src = "assets/cassette_static.png";
+                playBtn.innerText = "PLAY";
             }
         }
+
+        // Evento que se dispara al terminar el track
+        audio.onended = () => {
+            // Le pasamos "true" a nextTrack para forzar el Play automático
+            nextTrack(true);
+        };
 
         audio.onended = () => {
             nextTrack();
