@@ -10,7 +10,7 @@
         :root {
             --bg-color: #0a0a0a;
             --text-color: #e0e0e0;
-            --accent-color: #890808; /* Verde terminal */
+            --accent-color: #890808;
             --crt-overlay: rgba(18, 16, 16, 0.1);
         }
 
@@ -30,7 +30,6 @@
             text-transform: uppercase;
         }
 
-        /* --- Efecto de Estática y CRT --- */
         body::before {
             content: " ";
             display: block;
@@ -43,7 +42,6 @@
             pointer-events: none;
         }
 
-        /* --- Generador de Ruido 100% CSS/SVG --- */
         .noise {
             position: fixed;
             top: -50%; left: -50%;
@@ -96,6 +94,20 @@
             width: 250px;
         }
 
+        /* --- Leyenda pista --- */
+        .hint-text {
+            margin-top: 28px;
+            font-size: 0.95rem;
+            color: #8b0000;
+            letter-spacing: 3px;
+            animation: hint-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes hint-pulse {
+            0%, 100% { opacity: 0.35; text-shadow: none; }
+            50%       { opacity: 1;    text-shadow: 0 0 8px rgba(180, 0, 0, 0.7); }
+        }
+
         /* --- Pantalla del Reproductor --- */
         #player-screen {
             display: none;
@@ -106,7 +118,6 @@
             max-width: 500px;
         }
 
-        /* --- Contenedor del Cassette --- */
         .cassette-container {
             width: 300px;
             height: 190px;
@@ -119,7 +130,6 @@
             overflow: hidden;
         }
 
-        /* --- Animación GIF de fondo --- */
         .cassette-gif-bg {
             position: absolute;
             top: 0;
@@ -130,7 +140,6 @@
             z-index: 1;
         }
 
-        /* --- Logo integrado --- */
         .cassette-logo {
             position: absolute;
             top: 50%;
@@ -142,7 +151,6 @@
             pointer-events: none; 
         }
 
-        /* --- Etiqueta (Label) --- */
         .label {
             position: absolute;
             top: 25px; 
@@ -158,7 +166,6 @@
             z-index: 12;
         }
 
-        /* --- Textos Integrados al GIF --- */
         .track-info {
             font-size: 1.2rem;
             color: #000000; 
@@ -173,7 +180,6 @@
             margin-top: -1px;
         }
 
-        /* --- Controles y Letras --- */
         .controls {
             display: flex;
             gap: 20px;
@@ -206,7 +212,7 @@
             font-size: 1.1rem;
             color: #888;
             line-height: 1.4;
-            white-space: pre-line; /* ESTA ES LA LÍNEA MÁGICA */
+            white-space: pre-line;
         }
 
         ::-webkit-scrollbar { width: 5px; }
@@ -221,11 +227,11 @@
     <div id="login-screen">
         <div class="terminal-prompt">HEXES DEMOS: SECRET KEY</div>
         <input type="password" id="passkey" autocomplete="off" autofocus>
+        <p class="hint-text">FIND THE RED WORD ON THE CARD AND PRESS ENTER</p>
     </div>
 
     <div id="player-screen">
         <div class="cassette-container">
-            <!-- Usamos una ID para cambiar entre imagen estática y GIF -->
             <img src="assets/cassette_static.png" alt="Cassette Animation" class="cassette-gif-bg" id="cassette-bg">
             <img src="assets/logo_hexes.png" alt="Hexes Logo" class="cassette-logo">
             
@@ -445,16 +451,11 @@
             }
         }
 
-        // Se agrega el parámetro forcePlay (por defecto falso)
         function nextTrack(forcePlay = false) {
-            // Guardamos el estado ANTES de cargar el nuevo MP3
             const wasPlaying = !audio.paused; 
-            
-            // El módulo (%) asegura que después del último tema, volvamos al índice 0 (LOOP)
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             loadTrack(currentTrackIndex);
             
-            // Evaluamos si el tema anterior estaba sonando o si forzamos el autoplay por código
             if (wasPlaying || forcePlay) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
@@ -467,8 +468,6 @@
 
         function prevTrack() {
             const wasPlaying = !audio.paused; 
-            
-            // Cálculo para retroceder en loop
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             loadTrack(currentTrackIndex);
             
@@ -482,7 +481,6 @@
             }
         }
 
-        // EVENTO CLAVE: Cuando un MP3 termina por sí solo, avanza de track y lo fuerza a reproducirse
         audio.onended = () => {
             nextTrack(true);
         };
