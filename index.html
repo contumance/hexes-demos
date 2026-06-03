@@ -94,6 +94,27 @@
             width: 250px;
         }
 
+        /* --- Botón de acceso --- */
+        #enter-btn {
+            display: block;
+            margin: 18px auto 0;
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            font-family: 'VT323', monospace;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            padding: 4px 22px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, text-shadow 0.2s;
+        }
+
+        #enter-btn:hover {
+            border-color: #890808;
+            color: #cc0000;
+            text-shadow: 0 0 6px rgba(180, 0, 0, 0.6);
+        }
+
         /* --- Leyenda pista con glitch --- */
         .hint-text {
             margin-top: 28px;
@@ -303,6 +324,7 @@
     <div id="login-screen">
         <div class="terminal-prompt">HEXES DEMOS: SECRET KEY</div>
         <input type="password" id="passkey" autocomplete="off" autofocus>
+        <button id="enter-btn" onclick="checkAccess()">[ ENTER ]</button>
         <br>
         <p class="hint-text" id="hint-text">FIND THE RED WORD ON THE CARD</p>
     </div>
@@ -520,17 +542,20 @@
         setInterval(triggerHintGlitch, 4000);
 
         // --- Login ---
-        passInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                if (this.value.toUpperCase() === ACCESS_CODE) {
-                    loginScreen.style.display = 'none';
-                    playerScreen.style.display = 'flex';
-                    loadTrack(0);
-                } else {
-                    this.value = '';
-                    alert('ACCESS DENIED');
-                }
+        function checkAccess() {
+            if (passInput.value.toUpperCase() === ACCESS_CODE) {
+                loginScreen.style.display = 'none';
+                playerScreen.style.display = 'flex';
+                loadTrack(0);
+            } else {
+                passInput.value = '';
+                passInput.focus();
+                alert('ACCESS DENIED');
             }
+        }
+
+        passInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkAccess();
         });
 
         function loadTrack(index) {
