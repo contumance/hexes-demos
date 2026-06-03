@@ -94,18 +94,94 @@
             width: 250px;
         }
 
-        /* --- Leyenda pista --- */
+        /* --- Leyenda pista con glitch --- */
         .hint-text {
             margin-top: 28px;
             font-size: 0.95rem;
             color: #8b0000;
             letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
             animation: hint-pulse 3s ease-in-out infinite;
         }
 
         @keyframes hint-pulse {
             0%, 100% { opacity: 0.35; text-shadow: none; }
             50%       { opacity: 1;    text-shadow: 0 0 8px rgba(180, 0, 0, 0.7); }
+        }
+
+        /* Glitch: desplazamientos RGB y distorsión */
+        .hint-text.glitching {
+            animation: hint-glitch 0.5s steps(1) forwards;
+        }
+
+        @keyframes hint-glitch {
+            0%   { 
+                clip-path: inset(0 0 0 0);
+                transform: translate(0);
+                text-shadow: none;
+                opacity: 1;
+            }
+            10%  { 
+                clip-path: inset(20% 0 30% 0);
+                transform: translate(-4px, 1px) skewX(-5deg);
+                text-shadow: 3px 0 #ff0000, -3px 0 #00ffff;
+                opacity: 0.9;
+            }
+            20%  { 
+                clip-path: inset(60% 0 5% 0);
+                transform: translate(4px, -1px) skewX(4deg);
+                text-shadow: -4px 0 #ff0000, 4px 0 #00ffff;
+                opacity: 0.7;
+            }
+            30%  { 
+                clip-path: inset(10% 0 70% 0);
+                transform: translate(-3px, 2px) skewX(-3deg);
+                text-shadow: 2px 0 #ff0000, -2px 0 #00ffff;
+                opacity: 0.5;
+            }
+            40%  { 
+                clip-path: inset(40% 0 20% 0);
+                transform: translate(5px, 0px) skewX(6deg);
+                text-shadow: -5px 0 #ff0000, 5px 0 #00ffff;
+                opacity: 0.3;
+            }
+            50%  { 
+                clip-path: inset(0 0 0 0);
+                transform: translate(0) scaleY(1.05);
+                text-shadow: 3px 0 #ff0000, -3px 0 #00ffff;
+                opacity: 0.1;
+            }
+            60%  {
+                clip-path: inset(30% 0 40% 0);
+                transform: translate(-2px, 1px) skewX(-4deg);
+                text-shadow: -3px 0 #ff0000, 3px 0 #00ffff;
+                opacity: 0.2;
+            }
+            70%  { 
+                clip-path: inset(0 0 0 0);
+                transform: translate(3px, -2px) skewX(3deg);
+                text-shadow: 4px 0 #ff0000, -4px 0 #00ffff;
+                opacity: 0.5;
+            }
+            80%  { 
+                clip-path: inset(50% 0 10% 0);
+                transform: translate(-2px, 0) skewX(-2deg);
+                text-shadow: -2px 0 #ff0000, 2px 0 #00ffff;
+                opacity: 0.7;
+            }
+            90%  { 
+                clip-path: inset(0 0 0 0);
+                transform: translate(1px, 1px);
+                text-shadow: 1px 0 #ff0000, -1px 0 #00ffff;
+                opacity: 0.9;
+            }
+            100% { 
+                clip-path: inset(0 0 0 0);
+                transform: translate(0);
+                text-shadow: 0 0 8px rgba(180, 0, 0, 0.7);
+                opacity: 1;
+            }
         }
 
         /* --- Pantalla del Reproductor --- */
@@ -227,7 +303,8 @@
     <div id="login-screen">
         <div class="terminal-prompt">HEXES DEMOS: SECRET KEY</div>
         <input type="password" id="passkey" autocomplete="off" autofocus>
-        <p class="hint-text">FIND THE RED WORD ON THE CARD AND PRESS ENTER</p>
+        <br>
+        <p class="hint-text" id="hint-text">FIND THE RED WORD ON THE CARD</p>
     </div>
 
     <div id="player-screen">
@@ -416,9 +493,33 @@
         const playBtn = document.getElementById('play-btn');
         const titleDisplay = document.getElementById('current-title');
         const lyricsDisplay = document.getElementById('lyrics-text');
-        
         const cassetteBg = document.getElementById('cassette-bg');
 
+        // --- Lógica de glitch + traducción ---
+        const hintEl = document.getElementById('hint-text');
+        const hintEN = 'FIND THE RED WORD ON THE CARD';
+        const hintES = 'BUSCA LA PALABRA ROJA EN LA TARJETA';
+        let hintLang = 'en';
+
+        function triggerHintGlitch() {
+            hintEl.classList.add('glitching');
+
+            // A mitad de la animación (250ms) cambia el texto
+            setTimeout(() => {
+                hintLang = hintLang === 'en' ? 'es' : 'en';
+                hintEl.textContent = hintLang === 'en' ? hintEN : hintES;
+            }, 250);
+
+            // Al terminar la animación, restaura el pulse suave
+            hintEl.addEventListener('animationend', () => {
+                hintEl.classList.remove('glitching');
+            }, { once: true });
+        }
+
+        // Glitch cada 4 segundos (con 0.5s de glitch + pausa antes del siguiente)
+        setInterval(triggerHintGlitch, 4000);
+
+        // --- Login ---
         passInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 if (this.value.toUpperCase() === ACCESS_CODE) {
@@ -455,7 +556,6 @@
             const wasPlaying = !audio.paused; 
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             loadTrack(currentTrackIndex);
-            
             if (wasPlaying || forcePlay) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
@@ -470,7 +570,6 @@
             const wasPlaying = !audio.paused; 
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             loadTrack(currentTrackIndex);
-            
             if (wasPlaying) {
                 audio.play();
                 cassetteBg.src = "assets/cassette.gif";
