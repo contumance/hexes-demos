@@ -128,7 +128,7 @@
 
         @keyframes hint-pulse {
             0%, 100% { opacity: 0.35; text-shadow: none; }
-            50%       { opacity: 1;    text-shadow: 0 0 8px rgba(180, 0, 0, 0.7); }
+            50%        { opacity: 1;    text-shadow: 0 0 8px rgba(180, 0, 0, 0.7); }
         }
 
         /* Glitch: desplazamientos RGB y distorsión */
@@ -352,10 +352,53 @@
     </div>
 
    <script>
-        const ACCESS_CODE = "NOISE"; 
-        
-        const playlist = [
+        // Array maestro con todas las canciones
+        const masterPlaylist = [
             {
+                title: "DESPERTAR",
+                file: "assets/DESPERTAR.mp3",
+                lyrics: `Despierto un día más
+                            En ésta ciudad gris tan hostil
+                            El cemento obscuro y frío
+                            Se vuelve parte de mí
+                            
+                            Siento que no puedo más
+                            Necesito irme de acá
+                            
+                            Quiero despertarme bajo el sol
+                            Fundirme con el viento
+                            Y que el mar se lleve
+                            Todo lo que ha de doler
+                            
+                            Cuan iluso fuí, al abandonar
+                            el sitio donde crecí
+                            Creyendo que mis sueños estaban acá
+                            Mis sueños solo están en mí
+                            
+                            Siento que no puedo más
+                            Acaso es tarde ya
+                            
+                            Quiero despertarme bajo el sol
+                            Fundirme con el viento
+                            Y que el mar se lleve
+                            Todo lo que ha de doler
+                            Harto de este lugar
+                            Me envenena al respirar
+                            Su agua no es de beber
+                            Su pan corroe mis entrañas
+                            
+                            Debo escapar de acá
+                            Nunca regresar
+                            
+                            Quiero despertarme bajo el sol
+                            Fundirme con el viento
+                            Y que el mar se lleve
+                            Todo lo que ha de doler
+                            
+                            Quiero despertarme bajo el sol
+                            Y que el mar me lleve
+                            Para nunca más volver `
+            },{
                 title: "DYING WOLF",
                 file: "assets/DYINGWOLF.mp3",
                 lyrics: `laying underground
@@ -507,6 +550,7 @@
             }
         ];
 
+        let activePlaylist = []; // Esta será la lista que reproducirá el usuario
         let currentTrackIndex = 0;
         const audio = new Audio();
         const passInput = document.getElementById('passkey');
@@ -543,15 +587,28 @@
 
         // --- Login ---
         function checkAccess() {
-            if (passInput.value.toUpperCase() === ACCESS_CODE) {
-                loginScreen.style.display = 'none';
-                playerScreen.style.display = 'flex';
-                loadTrack(0);
+            const inputVal = passInput.value.toLowerCase().trim();
+
+            if (inputVal === 'noise') {
+                // Elimina el primer elemento (DESPERTAR)
+                activePlaylist = masterPlaylist.slice(1);
+                iniciarReproductor();
+            } else if (inputVal === 'awake') {
+                // Incluye todos los elementos
+                activePlaylist = masterPlaylist.slice();
+                iniciarReproductor();
             } else {
+                // Denegado
                 passInput.value = '';
                 passInput.focus();
                 alert('ACCESS DENIED');
             }
+        }
+
+        function iniciarReproductor() {
+            loginScreen.style.display = 'none';
+            playerScreen.style.display = 'flex';
+            loadTrack(0);
         }
 
         passInput.addEventListener('keypress', function (e) {
@@ -560,9 +617,9 @@
 
         function loadTrack(index) {
             currentTrackIndex = index;
-            audio.src = playlist[index].file;
-            titleDisplay.innerText = playlist[index].title;
-            lyricsDisplay.innerText = playlist[index].lyrics;
+            audio.src = activePlaylist[index].file;
+            titleDisplay.innerText = activePlaylist[index].title;
+            lyricsDisplay.innerText = activePlaylist[index].lyrics;
         }
 
         function togglePlay() {
@@ -579,7 +636,7 @@
 
         function nextTrack(forcePlay = false) {
             const wasPlaying = !audio.paused; 
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            currentTrackIndex = (currentTrackIndex + 1) % activePlaylist.length;
             loadTrack(currentTrackIndex);
             if (wasPlaying || forcePlay) {
                 audio.play();
@@ -593,7 +650,7 @@
 
         function prevTrack() {
             const wasPlaying = !audio.paused; 
-            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            currentTrackIndex = (currentTrackIndex - 1 + activePlaylist.length) % activePlaylist.length;
             loadTrack(currentTrackIndex);
             if (wasPlaying) {
                 audio.play();
