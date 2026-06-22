@@ -307,10 +307,10 @@ const shareBtn = document.getElementById('share-btn');
 if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
         if (!activePlaylist[currentTrackIndex]) return;
-        
+
         const url = window.location.origin;
-        const textToShare = `Escuchando ${activePlaylist[currentTrackIndex].title} en el acceso privado de HEXES.`;
-        
+        const textToShare = `Escuchando ${activePlaylist[currentTrackIndex].title} de HEXES.`;
+
         let shareData = {
             title: 'HEXES',
             text: textToShare,
@@ -318,11 +318,47 @@ if (shareBtn) {
         };
 
         try {
-            // Intentar obtener la imagen para compartirla como archivo (Esto activa IG Stories)
-            const response = await fetch('assets/cassette_static.png');
-            const blob = await response.blob();
-            const file = new File([blob], 'hexes.png', { type: blob.type });
-            
+            // Generar imagen dinámica con el nombre de la canción usando Canvas
+            const bgImg = new Image();
+            bgImg.crossOrigin = "anonymous";
+            bgImg.src = 'assets/cassette_static.png';
+
+            await new Promise((resolve, reject) => {
+                bgImg.onload = resolve;
+                bgImg.onerror = reject;
+            });
+
+            const shareCanvas = document.createElement('canvas');
+            shareCanvas.width = bgImg.width;
+            shareCanvas.height = bgImg.height;
+            const ctx = shareCanvas.getContext('2d');
+
+            // Dibujar fondo (cassette)
+            ctx.drawImage(bgImg, 0, 0);
+
+            // Proporciones basadas en el tamaño CSS del contenedor (300x190)
+            const scaleX = bgImg.width / 300;
+            const scaleY = bgImg.height / 190;
+
+            // Configurar tipografía retro (asegúrate de que el nombre coincida)
+            ctx.font = `${24 * scaleX}px "VT323", monospace`;
+            ctx.fillStyle = '#000000';
+            ctx.textBaseline = 'top';
+
+            const trackTitle = activePlaylist[currentTrackIndex].title;
+            const fullTitle = `${currentTrackIndex + 1}. ${trackTitle}`;
+
+            // Dibujar el título de la canción en la etiqueta blanca del cassette
+            ctx.fillText(fullTitle, 80 * scaleX, 26 * scaleY);
+
+            // Dibujar el texto secundario
+            ctx.font = `${14 * scaleX}px "VT323", monospace`;
+            ctx.fillText("SIDE A: UNRELEASED MATERIAL", 80 * scaleX, 48 * scaleY);
+
+            // Convertir canvas a Blob (Archivo físico virtual)
+            const blob = await new Promise(resolve => shareCanvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], `Hexes_${trackTitle.replace(/\\s+/g, '_')}.png`, { type: 'image/png' });
+
             const fileShareData = {
                 files: [file],
                 title: 'HEXES',
@@ -334,7 +370,7 @@ if (shareBtn) {
                 shareData = fileShareData;
             }
         } catch (e) {
-            console.log("No se pudo cargar la imagen para compartir, usando texto plano.");
+            console.error("Error al generar imagen de share:", e);
         }
 
         if (navigator.share) {
