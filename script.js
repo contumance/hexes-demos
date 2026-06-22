@@ -83,6 +83,7 @@ passInput.addEventListener('keypress', function (e) {
 function iniciarReproductor() {
     loginScreen.style.display = 'none';
     playerScreen.style.display = 'flex';
+    initVisualizer();
     renderPlaylist();
     loadTrack(0);
 }
@@ -213,9 +214,67 @@ volumeSlider.addEventListener('input', (e) => {
 
 // --- Analytics (Google Analytics GA4) ---
 audio.addEventListener('play', () => {
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
     if (typeof gtag === 'function' && activePlaylist[currentTrackIndex]) {
         gtag('event', 'song_played', {
             'song_title': activePlaylist[currentTrackIndex].title
         });
     }
 });
+
+// --- Visualizer (Web Audio API) ---
+let audioCtx;
+let analyser;
+let source;
+let isVisualizerInit = false;
+
+const canvas = document.getElementById('visualizer');
+const canvasCtx = canvas.getContext('2d');
+
+function initVisualizer() {
+    if (isVisualizerInit) return;
+    
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    
+    // Connect audio element to analyser
+    source = audioCtx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    
+    analyser.fftSize = 128; // lower fftSize for thicker bars
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    // Adjust canvas resolution
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    
+    function draw() {
+        requestAnimationFrame(draw);
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / bufferLength) * 2;
+        let barHeight;
+        let x = 0;
+        
+        for(let i = 0; i < bufferLength; i++) {
+            // Escalar para que no tape más del 40% del alto total del cassette
+            barHeight = (dataArray[i] / 255) * (canvas.height * 0.4); 
+            
+            // Draw retro red bars based on frequency height
+            canvasCtx.fillStyle = 'rgba(180, 8, 8, ' + (dataArray[i] / 255) + ')';
+            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            
+            x += barWidth + 2;
+        }
+    }
+    
+    draw();
+    isVisualizerInit = true;
+}
