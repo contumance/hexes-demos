@@ -234,6 +234,8 @@ input[type="password"] {
 .controls {
     display: flex;
     gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 button {
@@ -372,6 +374,62 @@ button:hover {
     color: var(--accent-color);
     border-color: var(--accent-color);
     text-shadow: 0 0 5px rgba(180, 0, 0, 0.6);
+}
+
+/* --- Glitch Effect --- */
+@keyframes glitch-anim {
+    0% { margin-left: 0; margin-top: 0; filter: hue-rotate(0deg); }
+    20% { margin-left: -4px; margin-top: 2px; filter: hue-rotate(90deg) contrast(150%); }
+    40% { margin-left: 4px; margin-top: -2px; filter: hue-rotate(-90deg) sepia(80%); }
+    60% { margin-left: -2px; margin-top: 4px; filter: hue-rotate(180deg) invert(20%); }
+    80% { margin-left: 2px; margin-top: -4px; filter: hue-rotate(45deg); }
+    100% { margin-left: 0; margin-top: 0; filter: hue-rotate(0deg); }
+}
+
+.glitch-active {
+    animation: glitch-anim 0.15s infinite;
+}
+
+/* --- Subscribe Form --- */
+.subscribe-container {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#subscribe-form {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+}
+
+#subscribe-form input {
+    flex-grow: 1;
+    background: transparent;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    outline: none;
+    transition: all 0.2s;
+}
+
+#subscribe-form input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(180, 0, 0, 0.4);
+}
+
+#subscribe-form input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+#subscribe-form button {
+    font-size: 1.2rem;
+    padding: 5px 15px;
 }
 
 /* --- Responsive (Mobile) --- */
