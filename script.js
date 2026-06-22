@@ -132,10 +132,10 @@ function loadTrack(index) {
 function updatePlayState() {
     if (!audio.paused) {
         playBtn.innerText = "PAUSE";
-        cassetteBg.src = "assets/cassette.gif"; 
+        cassetteBg.src = "assets/cassette.gif";
     } else {
         playBtn.innerText = "PLAY";
-        cassetteBg.src = "assets/cassette_static.png"; 
+        cassetteBg.src = "assets/cassette_static.png";
     }
 }
 
@@ -151,7 +151,7 @@ function togglePlay() {
 playBtn.addEventListener('click', togglePlay);
 
 function nextTrack(forcePlay = false) {
-    const wasPlaying = !audio.paused; 
+    const wasPlaying = !audio.paused;
     currentTrackIndex = (currentTrackIndex + 1) % activePlaylist.length;
     loadTrack(currentTrackIndex);
     if (wasPlaying || forcePlay) {
@@ -163,7 +163,7 @@ function nextTrack(forcePlay = false) {
 nextBtn.addEventListener('click', () => nextTrack(false));
 
 function prevTrack() {
-    const wasPlaying = !audio.paused; 
+    const wasPlaying = !audio.paused;
     currentTrackIndex = (currentTrackIndex - 1 + activePlaylist.length) % activePlaylist.length;
     loadTrack(currentTrackIndex);
     if (wasPlaying) {
@@ -235,46 +235,93 @@ const canvasCtx = canvas.getContext('2d');
 
 function initVisualizer() {
     if (isVisualizerInit) return;
-    
+
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
-    
+
     // Connect audio element to analyser
     source = audioCtx.createMediaElementSource(audio);
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
-    
+
     analyser.fftSize = 128; // lower fftSize for thicker bars
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    
+
     // Adjust canvas resolution
     canvas.width = canvas.offsetWidth * 2;
     canvas.height = canvas.offsetHeight * 2;
-    
+
     function draw() {
         requestAnimationFrame(draw);
-        
+
         analyser.getByteFrequencyData(dataArray);
-        
+
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         const barWidth = (canvas.width / bufferLength) * 2;
         let barHeight;
         let x = 0;
-        
-        for(let i = 0; i < bufferLength; i++) {
+
+        for (let i = 0; i < bufferLength; i++) {
             // Escalar para que no tape más del 40% del alto total del cassette
-            barHeight = (dataArray[i] / 255) * (canvas.height * 0.4); 
-            
+            barHeight = (dataArray[i] / 255) * (canvas.height * 0.4);
+
             // Draw retro red bars based on frequency height
             canvasCtx.fillStyle = 'rgba(180, 8, 8, ' + (dataArray[i] / 255) + ')';
             canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            
+
             x += barWidth + 2;
         }
     }
-    
+
     draw();
     isVisualizerInit = true;
+}
+
+// --- Glitch Interaction ---
+const cassetteContainer = document.querySelector('.cassette-container');
+//const cassetteBg = document.getElementById('cassette-bg');
+
+function addGlitch() {
+    cassetteBg.classList.add('glitch-active');
+}
+
+function removeGlitch() {
+    cassetteBg.classList.remove('glitch-active');
+}
+
+cassetteContainer.addEventListener('mousedown', addGlitch);
+cassetteContainer.addEventListener('mouseup', removeGlitch);
+cassetteContainer.addEventListener('mouseleave', removeGlitch);
+
+cassetteContainer.addEventListener('touchstart', addGlitch);
+cassetteContainer.addEventListener('touchend', removeGlitch);
+cassetteContainer.addEventListener('touchcancel', removeGlitch);
+
+// Evitar que el drag nativo interrumpa el evento
+cassetteBg.addEventListener('dragstart', (e) => e.preventDefault());
+
+// --- Share Logic ---
+const shareBtn = document.getElementById('share-btn');
+if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+        if (!activePlaylist[currentTrackIndex]) return;
+        
+        const shareData = {
+            title: 'HEXES',
+            text: `Escuchando ${activePlaylist[currentTrackIndex].title} en el acceso privado de HEXES.`,
+            url: window.location.origin
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            alert("Tu dispositivo o navegador no soporta la función de compartir nativa. ¡Copia el enlace arriba!");
+        }
+    });
 }
