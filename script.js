@@ -308,11 +308,34 @@ if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
         if (!activePlaylist[currentTrackIndex]) return;
         
-        const shareData = {
+        const url = window.location.origin;
+        const textToShare = `Escuchando ${activePlaylist[currentTrackIndex].title} en el acceso privado de HEXES.`;
+        
+        let shareData = {
             title: 'HEXES',
-            text: `Escuchando ${activePlaylist[currentTrackIndex].title} en el acceso privado de HEXES.`,
-            url: window.location.origin
+            text: textToShare,
+            url: url
         };
+
+        try {
+            // Intentar obtener la imagen para compartirla como archivo (Esto activa IG Stories)
+            const response = await fetch('assets/cassette_static.png');
+            const blob = await response.blob();
+            const file = new File([blob], 'hexes.png', { type: blob.type });
+            
+            const fileShareData = {
+                files: [file],
+                title: 'HEXES',
+                text: textToShare,
+            };
+
+            // Verificar si el navegador permite compartir archivos
+            if (navigator.canShare && navigator.canShare(fileShareData)) {
+                shareData = fileShareData;
+            }
+        } catch (e) {
+            console.log("No se pudo cargar la imagen para compartir, usando texto plano.");
+        }
 
         if (navigator.share) {
             try {
