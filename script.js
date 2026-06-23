@@ -235,49 +235,77 @@ let isVisualizerInit = false;
 
 const canvas = document.getElementById('visualizer');
 const canvasCtx = canvas.getContext('2d');
-
 function initVisualizer() {
     if (isVisualizerInit) return;
-
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-
-    // Connect audio element to analyser
-    source = audioCtx.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-
-    analyser.fftSize = 128; // lower fftSize for thicker bars
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    // Adjust canvas resolution
+    
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // Ajustar resolución del canvas
     canvas.width = canvas.offsetWidth * 2;
     canvas.height = canvas.offsetHeight * 2;
 
+    if (isMobile) {
+        // --- ECUALIZADOR FALSO PARA MÓVIL ---
+        // Los teléfonos cortan el sonido en 2do plano si usamos la Web Audio API.
+        // Aquí simulamos visualmente las barras para no perder el efecto ni el sonido.
+        const bufferLength = 32;
+        let fakeData = new Float32Array(bufferLength);
+        
+        function drawFake() {
+            requestAnimationFrame(drawFake);
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (audio.paused) return; 
+            
+            const barWidth = (canvas.width / bufferLength) * 2;
+            let x = 0;
+            
+            for(let i = 0; i < bufferLength; i++) {
+                // Suavizar el valor aleatorio para que se vea natural
+                const target = Math.random() * 255;
+                fakeData[i] += (target - fakeData[i]) * 0.15; 
+                const val = fakeData[i];
+                
+                const barHeight = (val / 255) * (canvas.height * 0.4); 
+                canvasCtx.fillStyle = 'rgba(180, 8, 8, ' + (val / 255) + ')';
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 2;
+            }
+        }
+        drawFake();
+        isVisualizerInit = true;
+        return;
+    }
+
+    // --- ECUALIZADOR REAL PARA PC ---
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    
+    source = audioCtx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    
+    analyser.fftSize = 128; 
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
     function draw() {
         requestAnimationFrame(draw);
-
         analyser.getByteFrequencyData(dataArray);
-
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-
+        
         const barWidth = (canvas.width / bufferLength) * 2;
         let barHeight;
         let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            // Escalar para que no tape más del 40% del alto total del cassette
-            barHeight = (dataArray[i] / 255) * (canvas.height * 0.4);
-
-            // Draw retro red bars based on frequency height
+        
+        for(let i = 0; i < bufferLength; i++) {
+            barHeight = (dataArray[i] / 255) * (canvas.height * 0.4); 
             canvasCtx.fillStyle = 'rgba(180, 8, 8, ' + (dataArray[i] / 255) + ')';
             canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
             x += barWidth + 2;
         }
     }
-
+    
     draw();
     isVisualizerInit = true;
 }
