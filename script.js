@@ -266,7 +266,8 @@ function initVisualizer() {
                 fakeData[i] += (target - fakeData[i]) * 0.15; 
                 const val = fakeData[i];
                 
-                const barHeight = (val / 255) * (canvas.height * 0.4); 
+                // Reducir la altura máxima de las barras simuladas (de 0.4 a 0.2)
+                const barHeight = (val / 255) * (canvas.height * 0.2); 
                 canvasCtx.fillStyle = 'rgba(180, 8, 8, ' + (val / 255) + ')';
                 canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
                 x += barWidth + 2;
