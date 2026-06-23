@@ -39,7 +39,7 @@ function triggerHintGlitch() {
         hintEl.classList.remove('glitching');
     }, { once: true });
 }
-setInterval(triggerHintGlitch, 4000);
+const hintInterval = setInterval(triggerHintGlitch, 10000);
 
 // --- Login Logic (Backend Vercel) ---
 async function checkAccess() {
@@ -81,6 +81,7 @@ passInput.addEventListener('keypress', function (e) {
 
 // --- Player Logic ---
 function iniciarReproductor() {
+    clearInterval(hintInterval); // Detener la animación de fondo oculta
     loginScreen.style.display = 'none';
     playerScreen.style.display = 'flex';
     initVisualizer();
@@ -322,19 +323,32 @@ if (shareBtn) {
             const bgImg = new Image();
             bgImg.crossOrigin = "anonymous";
             bgImg.src = 'assets/cassette_static.png';
-
-            await new Promise((resolve, reject) => {
-                bgImg.onload = resolve;
-                bgImg.onerror = reject;
-            });
+            
+            const layerImg = new Image();
+            layerImg.crossOrigin = "anonymous";
+            layerImg.src = 'assets/cassette_capa_intermedia.png';
+            
+            await Promise.all([
+                new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = reject;
+                }),
+                new Promise((resolve, reject) => {
+                    layerImg.onload = resolve;
+                    layerImg.onerror = reject;
+                })
+            ]);
 
             const shareCanvas = document.createElement('canvas');
             shareCanvas.width = bgImg.width;
             shareCanvas.height = bgImg.height;
             const ctx = shareCanvas.getContext('2d');
-
+            
             // Dibujar fondo (cassette)
             ctx.drawImage(bgImg, 0, 0);
+            
+            // Dibujar capa intermedia
+            ctx.drawImage(layerImg, 0, 0);
 
             // Proporciones basadas en el tamaño CSS del contenedor (300x190)
             const scaleX = bgImg.width / 300;
