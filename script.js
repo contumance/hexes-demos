@@ -85,6 +85,7 @@ function iniciarReproductor() {
     loginScreen.style.display = 'none';
     playerScreen.style.display = 'flex';
     initVisualizer();
+    initMediaSession();
     renderPlaylist();
     loadTrack(0);
 }
@@ -124,6 +125,7 @@ function loadTrack(index) {
     titleDisplay.innerText = activePlaylist[index].title;
     lyricsDisplay.innerText = activePlaylist[index].lyrics;
     updatePlaylistActiveItem();
+    updateMediaSession();
     // Reset progress
     progressFill.style.width = '0%';
     currentTimeEl.innerText = '0:00';
@@ -302,6 +304,30 @@ cassetteContainer.addEventListener('touchcancel', removeGlitch);
 
 // Evitar que el drag nativo interrumpa el evento
 cassetteBg.addEventListener('dragstart', (e) => e.preventDefault());
+
+// --- Media Session API (Background Playback) ---
+function initMediaSession() {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', togglePlay);
+        navigator.mediaSession.setActionHandler('pause', togglePlay);
+        navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack(true));
+    }
+}
+
+function updateMediaSession() {
+    if ('mediaSession' in navigator && activePlaylist[currentTrackIndex]) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: activePlaylist[currentTrackIndex].title,
+            artist: 'HEXES',
+            album: 'Unreleased Demos',
+            artwork: [
+                { src: `${window.location.origin}/assets/cassette_static.png`, sizes: '512x512', type: 'image/png' },
+                { src: `${window.location.origin}/assets/logo_hexes.png`, sizes: '512x512', type: 'image/png' }
+            ]
+        });
+    }
+}
 
 // --- Share Logic ---
 const shareBtn = document.getElementById('share-btn');
