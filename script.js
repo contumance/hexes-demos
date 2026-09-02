@@ -41,43 +41,18 @@ function triggerHintGlitch() {
 }
 const hintInterval = setInterval(triggerHintGlitch, 10000);
 
-// --- Login Logic (Backend Vercel) ---
-async function checkAccess() {
-    const passkey = passInput.value.trim();
-    if (!passkey) return;
-
-    enterBtn.innerText = '[ CHECKING... ]';
-    errorMsg.style.display = 'none';
-
+// --- Login Logic (Bypassed) ---
+async function loadDirectly() {
     try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ passkey })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            activePlaylist = data.playlist;
-            iniciarReproductor();
-        } else {
-            throw new Error(data.error || 'ACCESS DENIED');
-        }
+        const response = await fetch('playlist.json');
+        activePlaylist = await response.json();
+        iniciarReproductor();
     } catch (err) {
-        passInput.value = '';
-        passInput.focus();
-        errorMsg.innerText = err.message || 'ACCESS DENIED';
-        errorMsg.style.display = 'block';
-    } finally {
-        enterBtn.innerText = '[ ENTER ]';
+        console.error("Error loading playlist:", err);
     }
 }
 
-enterBtn.addEventListener('click', checkAccess);
-passInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') checkAccess();
-});
+window.addEventListener('DOMContentLoaded', loadDirectly);
 
 // --- Player Logic ---
 function iniciarReproductor() {
