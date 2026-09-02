@@ -45,7 +45,9 @@ const hintInterval = setInterval(triggerHintGlitch, 10000);
 async function loadDirectly() {
     try {
         const response = await fetch('playlist.json');
-        activePlaylist = await response.json();
+        const masterPlaylist = await response.json();
+        // Cargar los temas ocultando el primero (DESPERTAR)
+        activePlaylist = masterPlaylist.slice(1);
         iniciarReproductor();
     } catch (err) {
         console.error("Error loading playlist:", err);
